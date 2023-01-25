@@ -1,0 +1,112 @@
+hooks: []
+pages: []
+resourceServers: []
+databases:
+connections:
+tenant:
+  enabled_locales:
+    - en
+  flags:
+    new_universal_login_experience_enabled: false
+    universal_login: true
+    dashboard_ui_next: true
+    revoke_refresh_token_grant: false
+    disable_clickjack_protection_headers: false
+emailProvider: {}
+emailTemplates: []
+guardianFactors:
+  - name: duo
+    enabled: false
+  - name: email
+    enabled: false
+  - name: otp
+    enabled: true
+  - name: push-notification
+    enabled: true
+  - name: recovery-code
+    enabled: true
+  - name: sms
+    enabled: true
+  - name: webauthn-platform
+    enabled: false
+  - name: webauthn-roaming
+    enabled: false
+guardianFactorTemplates: []
+guardianPolicies:
+  policies: []
+guardianPhoneFactorMessageTypes:
+  message_types:
+    - sms
+roles: []
+prompts:
+  universal_login_experience: new
+  identifier_first: false
+  webauthn_platform_first_factor: false
+migrations: {}
+actions: []
+triggers: {}
+organizations: []
+themes:
+  - borders:
+      button_border_weight: 1
+      buttons_style: rounded
+      button_border_radius: 3
+      input_border_weight: 1
+      inputs_style: rounded
+      input_border_radius: 3
+      widget_corner_radius: 30
+      widget_border_weight: 1
+      show_widget_shadow: true
+    colors:
+      primary_button: '#191919'
+      primary_button_label: '#f4f2ec'
+      secondary_button_border: '#191919'
+      secondary_button_label: '#191919'
+      base_focus_color: '#3F59E4'
+      base_hover_color: '#3F59E4'
+      links_focused_components: '#3F59E4'
+      header: '#191919'
+      body_text: '#191919'
+      widget_background: '#F6F1E7'
+      widget_border: '#191919'
+      input_labels_placeholders: '#191919'
+      input_filled_text: '#191919'
+      input_border: '#191919'
+      input_background: '#f4f2ec'
+      icons: '#191919'
+      error: '#d03c38'
+      success: '#13a688'
+    displayName: Unnamed Theme
+    fonts:
+      font_url: ''
+      reference_text_size: 16
+      title:
+        bold: false
+        size: 150
+      subtitle:
+        bold: false
+        size: 87.5
+      body_text:
+        bold: false
+        size: 87.5
+      buttons_text:
+        bold: false
+        size: 100
+      input_labels:
+        bold: false
+        size: 100
+      links:
+        bold: true
+        size: 87.5
+      links_style: normal
+    page_background:
+      page_layout: left
+      background_color: '#f4f2ec'
+      background_image_url: ''
+    widget:
+      logo_position: center
+      logo_url: ''
+      logo_height: 90
+      header_text_alignment: center
+      social_buttons_layout: top
+
