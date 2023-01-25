@@ -56,11 +56,14 @@ app.use(express.urlencoded({extended: true}))
 app.post('/tenantreset', async function(req, res, next){
     logger.info('/tenantreset');
     let output = ['<pre>'];
-    output.push('resetting tenant: '+req.body.tenant);
+    let msg;
+
+    msg = 'resetting tenant: '+req.body.tenant;
+    logger.info(msg);
+    output.push(msg);
+    
+    const url = `https://${req.body.tenant}/`    
     let mgmtToken;
-    let url = new URL('https://'+req.body.tenant);
-    url = `https://${url.host}/`
-    logger.info('token url '+url)
     try{
         mgmtToken = await utils.getManagementToken(
             url,
@@ -75,7 +78,6 @@ app.post('/tenantreset', async function(req, res, next){
         res.status(500).send(output + '\r\n\r\nError 500:\r\n' + errMsg);
         return;
     }
-    let msg;
     msg = 'got token!';
     logger.info(msg);
     output.push(msg);
@@ -109,7 +111,7 @@ app.post('/tenantreset', async function(req, res, next){
         logger.info(msg);
         output.push(msg);
         try{
-            deleteResult = await utils.callManagementApi('delete', url + 'api/v2/users/'+user.user_id, null, mgmtToken)
+            await utils.callManagementApi('delete', url + 'api/v2/users/'+user.user_id, null, mgmtToken)
         } catch(err){
             console.log(err)
             let errMsg = 'Failed to read users ' + utils.formatCicManagementApiError(err);
@@ -117,7 +119,6 @@ app.post('/tenantreset', async function(req, res, next){
             res.status(500).send(getOutput(output) + '\r\n\r\nError 500:\r\n' + errMsg);
             return;
         }
-        console.log(deleteResult)
     })
 
     msg = 'running blank deploy cli!';
