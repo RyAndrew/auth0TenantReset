@@ -3,9 +3,10 @@ const express = require('express');
 const logger = require('./logger');
 const auth0 = require('auth0-deploy-cli');
 
-app = express();
+const app = express();
 
 app.get('/', function(req, res, next){
+    const errorMsg = req.query.errorMsg || '';
     res.send(`
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.css">
     <script
@@ -18,6 +19,9 @@ app.get('/', function(req, res, next){
   </div>
   <div class="content">
         Create a Machine to Machine Application authorized for the Management API
+  </div>
+  <div class="content" style="color:red">
+    ${errorMsg}
   </div>
   <div class="content">
         <form class="ui form" method="post" action="/tenantreset">
@@ -55,6 +59,13 @@ app.use(express.urlencoded({extended: true}))
 
 app.post('/tenantreset', async function(req, res, next){
     logger.info('/tenantreset');
+    if(!req.body.tenant || req.body.tenant == '' ||
+       !req.body.client_id || req.body.client_id == '' ||
+       !req.body.client_secret || req.body.client_secret == ''
+    ){
+        logger.info('invalid params');
+        return res.redirect('/?errorMsg='+encodeURIComponent('Missing parameters!')); 
+    }
     let output = ['<pre>'];
     let msg;
 
