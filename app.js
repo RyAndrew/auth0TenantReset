@@ -57,6 +57,8 @@ $('.ui.checkbox')
 
 app.use(express.urlencoded({extended: true}))
 
+const clientNamesToKeep=["Auth0 Dashboard Backend Management Client","Demo Platform Management","All Applications"];
+
 app.post('/tenantreset', async function(req, res, next){
     logger.info('/tenantreset');
     if(!req.body.tenant || req.body.tenant == '' ||
@@ -66,12 +68,8 @@ app.post('/tenantreset', async function(req, res, next){
         logger.info('invalid params');
         return res.redirect('/?errorMsg='+encodeURIComponent('Missing parameters!')); 
     }
-    let output = ['<pre>'];
-    let msg;
-
-    msg = 'resetting tenant: '+req.body.tenant;
-    logger.info(msg);
-    output.push(msg);
+    output = ['<pre>'];
+    logAndOutputText('resetting tenant: '+req.body.tenant);
     
     const url = `https://${req.body.tenant}/`    
     let mgmtToken;
@@ -80,22 +78,17 @@ app.post('/tenantreset', async function(req, res, next){
             url,
             req.body.client_id,
             req.body.client_secret,
-            'read:users delete:users'
+            'read:users delete:users read:clients delete:clients'
         );
     } catch(err){
-        console.log(err)
-        let errMsg = 'Failed to get token ' + utils.formatCicManagementApiError(err);
-        logger.error(errMsg);
-        res.status(500).send(output + '\r\n\r\nError 500:\r\n' + errMsg);
+        logAndOutputText('Failed to get token. Please verify your url, client id, & client secret!');
+        logAndOutputText(utils.formatCicManagementApiError(err));
+        res.status(500).send(getOutput(output));
         return;
     }
-    msg = 'got token!';
-    logger.info(msg);
-    output.push(msg);
+    logAndOutputText('got token!');
 
-    msg = 'read users';
-    logger.info(msg);
-    output.push(msg);
+    logAndOutputText('read users');
 
     let users;
     try{
@@ -107,34 +100,65 @@ app.post('/tenantreset', async function(req, res, next){
         res.status(500).send(getOutput(output) + '\r\n\r\nError 500:\r\n' + errMsg);
         return;
     }
-    msg = users.length +' users found';
-    logger.info(msg);
-    output.push(msg);
+    logAndOutputText(users.length +' users found');
     output.push(JSON.stringify(users,null,4))
 
-    msg = 'deleting all users!';
-    logger.info(msg);
-    output.push(msg);
+    logAndOutputText('deleting all users!');
 
     users.forEach(async (user)=>{
         let deleteResult;
-        msg = 'deleting user '+user.user_id;
-        logger.info(msg);
-        output.push(msg);
+        logAndOutputText('deleting user '+user.user_id);
         try{
             await utils.callManagementApi('delete', url + 'api/v2/users/'+user.user_id, null, mgmtToken)
         } catch(err){
             console.log(err)
-            let errMsg = 'Failed to read users ' + utils.formatCicManagementApiError(err);
+            let errMsg = 'Failed to delete user ' + utils.formatCicManagementApiError(err);
             logger.error(errMsg);
             res.status(500).send(getOutput(output) + '\r\n\r\nError 500:\r\n' + errMsg);
             return;
         }
     })
+  
+    logAndOutputText('read clients');
 
-    msg = 'running blank deploy cli!';
-    logger.info(msg);
-    output.push(msg);
+    let clients;
+    try{
+        clients = await utils.callManagementApi('get', url + 'api/v2/clients', null, mgmtToken)
+    } catch(err){
+        console.log(err)
+        let errMsg = 'Failed to read clients ' + utils.formatCicManagementApiError(err);
+        logger.error(errMsg);
+        res.status(500).send(getOutput(output) + '\r\n\r\nError 500:\r\n' + errMsg);
+        return;
+    }
+    logAndOutputText(clients.length +' clients found');
+    output.push(JSON.stringify(clients,null,4))
+
+    logAndOutputText('deleting all clients!');
+
+    clients.forEach(async (client)=>{
+        if(clientNamesToKeep.includes(client.name)){
+          logAndOutputText(`skipping client ${client.name} - ${client.client_id}`);
+          return;
+        }
+      //dont delete this app
+      if(req.body.client_id === client.client_id){
+        return;
+      }
+        let deleteResult;
+        logAndOutputText(`deleting client ${client.name} - ${client.client_id}`);
+        try{
+            await utils.callManagementApi('delete', url + 'api/v2/clients/'+client.client_id, null, mgmtToken)
+        } catch(err){
+            console.log(err)
+            let errMsg = 'Failed to delete client ' + utils.formatCicManagementApiError(err);
+            logger.error(errMsg);
+            res.status(500).send(getOutput(output) + '\r\n\r\nError 500:\r\n' + errMsg);
+            return;
+        }
+    })
+  
+    logAndOutputText('running blank deploy cli!');
 
     await auth0.deploy({
         input_file: './reset-tenant.yaml',
@@ -146,16 +170,20 @@ app.post('/tenantreset', async function(req, res, next){
         }
     })
 
-    msg = 'tenant reset complete!';
-    logger.info(msg);
-    output.push(msg);
+    logAndOutputText('tenant reset complete!');
     
     res.send(getOutput(output))
 })
 
+let output = ['<pre>'];
+function logAndOutputText(text){
+    logger.info(text);
+    output.push(text);
+}
 function getOutput(output){
     return output.join('\r\n');
 }
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Application started'));

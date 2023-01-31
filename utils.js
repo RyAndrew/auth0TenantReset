@@ -39,6 +39,9 @@ formatCicManagementApiError(error){
         error.response.data.message +' errorCode:'+
         error.response.data.errorCode;
     }
+    if(error.message){
+      return error.message;
+    }
     //is this an axios error?
     if(error?.toJSON){
         return error.toJSON();
